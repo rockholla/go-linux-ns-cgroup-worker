@@ -38,7 +38,8 @@ type ProcessStore interface {
 	NewProcess(processID string, ownerID string) (err error)
 	GetOutputWriters(processID string) (stdout io.Writer, stderr io.Writer, err error)
 	GetOwnerID(processID string) (ownerID string, err error)
-	GetStatus(processID string) (stdout io.Reader, stderr io.Reader, done bool, exitCode int, err error)
+	GetStatus(processID string) (done bool, exitCode int, err error)
+	GetOutput(processID string) (stdout io.Reader, stderr io.Reader, err error)
 }
 ```
 
@@ -54,7 +55,10 @@ func Start(cmd []string, ownerID string, store ProcessStore) (processID string, 
 func Stop(processID string, requesterID string) error
 
 // GetStatus is a wrapper around the process store implementation to also manage authorization-related logic, e.g. does requester = owner
-func GetStatus(processID string, requesterID string) (stdout io.Reader, stderr io.Reader, done bool, exitCode int, err error)
+func GetStatus(processID string, requesterID string) (done bool, exitCode int, err error)
+
+// GetOutput is a wrapper around the process store implementation to also manage authorization-related logic, e.g. does requester = owner
+func GetOutput(processID string, requesterID string) (stdout io.Reader, stderr io.Reader, err error)
 ```
 
 ## API
@@ -100,7 +104,7 @@ linux-worker start \
 For example:
 
 ```shell
-$ linux-worker start --host=127.0.0.1 --cert-key-path=./user-cert.key -cert-path=./user-cert.pem -- tail -f /var/log/syslog
+$ linux-worker start --host=127.0.0.1:50001 --cert-key-path=./user-cert.key -cert-path=./user-cert.pem -- tail -f /var/log/syslog
 {"id":"91d1a3cf-9c56-4d30-bd45-b378c4080a8b"}
 ```
 
@@ -129,16 +133,40 @@ linux-worker get-status \
   --process-id=[process ID returned from the start subcommand]
 ```
 
-Example of a streaming `get-status` command and result to completion:
+Example of the `get-status` command and result:
 
 ```shell
-$ linux-worker get-status --host=inactivehost --cert-key-path=./user-cert.key --cert-path=./user-cert.pem --process-id=91d1a3cf-9c56-4d30-bd45-b378c4080a8b
-{"stdout": "log line 1", "stderr": "", "exit_code": ""}
-{"stdout": "log line 2", "stderr": "", "exit_code": ""}
-{"stdout": "final log line", "stderr": "", "exit_code": "1"}
+$ linux-worker get-status --host=127.0.0.1:50001 --cert-key-path=./user-cert.key --cert-path=./user-cert.pem --process-id=91d1a3cf-9c56-4d30-bd45-b378c4080a8b
+{"exit_code": "", "status": "running"}
+```
+
+Other possible `get-status` examples:
+
+```json
+{"exit_code": "1", "status": "errored"}
+```
+
+```json
+{"exit_code": "0", "status": "done"}
+```
+
+```shell
+linux-worker stream-output \
+  --host=[address of the API server] \
+  --cert-key-path=[path to user certificate key to authenticate to the API] \
+  --cert-path=[path to user certificate to authenticate to the API] \
+  --process-id=[process ID returned from the start subcommand]
+```
+
+Example of a streaming `stream-output` command and result to completion:
+
+```shell
+$ linux-worker stream-output --host=127.0.0.1:50001 --cert-key-path=./user-cert.key --cert-path=./user-cert.pem --process-id=91d1a3cf-9c56-4d30-bd45-b378c4080a8b
+{"stdout": "log line 1", "stderr": ""}
+{"stdout": "log line 2", "stderr": ""}
+{"stdout": "", "stderr": "something went wrong, retrying..."}
+{"stdout": "complete", "stderr": ""}
 $ 
 ```
 
-* The output will be streamed in JSON-log format, the `get-status` cli command stream only ending with a common termination signal, or when the process is done and the stream of output is complete.
-* The absence of a populated `exit_code` means the process is still running from the user's perspective
-* Conversely, the user of the command output can parse the `exit_code` from the final line of the output from this command
+* The output will be streamed in JSON-log format, the cli command stream only ending with a common termination signal, or when the process is done and the stream of output is complete
