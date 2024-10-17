@@ -63,13 +63,30 @@ func GetOutput(processID string, requesterID string) (stdout io.Reader, stderr i
 
 ## API
 
-The API will be a gRPC-based API like the following proto definition:
+The API will be a gRPC-based API like the following proto definition for the service and request messages:
 
 ```
 service Worker {
-  rpc Start(StartRequest) returns (StartResponse) {}
-  rpc Stop(StopRequest) returns (StopResponse) {}
-  rpc GetStatus(GetStatusRequest) returns (stream GetStatusResponse)
+  rpc Start (StartRequest) returns (StartResponse) {}
+  rpc Stop (StopRequest) returns (StopResponse) {}
+  rpc GetStatus (GetStatusRequest) returns (GetStatusResponse) {}
+  rpc StreamOutput(StreamOutputRequest) returns (stream StreamOutputResponse) {}
+}
+
+message StartRequest {
+  string cmd = 1;
+}
+
+message StopRequest {
+  string process_id = 1;
+}
+
+message GetStatusRequest {
+  string process_id = 1;
+}
+
+message StreamOutputRequest {
+  string process_id = 1;
 }
 ```
 
