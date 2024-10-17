@@ -33,12 +33,11 @@ This will be the lowest-level part of the service stack, with the following goal
 The library will define an interface for storing and tracking running processes, a process store, like:
 
 ```golang
-// ProcessStore defines an interface that could define a way for the library to allow itself or others
-// to define custom stores for tracking a processes output and status
+// ProcessStore defines an interface for defining custom stores to track processes, ownership, status, output, etc.
 type ProcessStore interface {
 	NewProcess(processID string, ownerID string) (err error)
 	GetOutputWriters(processID string) (stdout io.Writer, stderr io.Writer, err error)
-  GetOwnerID(processID string) (ownerID string, err error)
+	GetOwnerID(processID string) (ownerID string, err error)
 	GetStatus(processID string) (stdout io.Reader, stderr io.Reader, done bool, exitCode int, err error)
 }
 ```
@@ -83,8 +82,7 @@ The CA/server cert and key will be generated as a one-time operation for use by 
 
 Individual user/client certs/keys will be generated per user, with `subject organization = username`. This will be the basis for not only authentication, but also **authorization**:
 
-* Server user store, just in-memory for now, will store known usernames for data association, e.g. processes owned by cert username
-* The client will authenticate with a user-specific cert, and thus pass awareness of the cert's username to the server
+* The client will authenticate with a user-specific cert, and thus pass awareness of the cert's username to the server for assigning ownership of a process
 * The server can then restrict the given user to perform operations (stop/get status) against the processes they own only as a minimal authorization scheme
 
 ## CLI
@@ -135,9 +133,9 @@ Example of a streaming `get-status` command and result to completion:
 
 ```shell
 $ linux-worker get-status --host=inactivehost --cert-key-path=./user-cert.key --cert-path=./user-cert.pem --process-id=91d1a3cf-9c56-4d30-bd45-b378c4080a8b
-{"stdout": "log line 1", "stderr": "", exit_code: ""}
-{"stdout": "log line 2", "stderr": "", exit_code: ""}
-{"stdout": "final log line", "stderr": "", exit_code: "1"}
+{"stdout": "log line 1", "stderr": "", "exit_code": ""}
+{"stdout": "log line 2", "stderr": "", "exit_code": ""}
+{"stdout": "final log line", "stderr": "", "exit_code": "1"}
 $ 
 ```
 
