@@ -80,7 +80,7 @@ The above choices are aimed at balancing a combination of: simplicity, compatibi
 
 The CA/server cert and key will be generated as a one-time operation for use by the API. The tooling to do so will at least be minimally re-usable to support future rotation and re-generation of server and user certs alike.
 
-Individual user/client certs/keys will be generated per user, with `subject organization = username`. This will be the basis for not only authentication, but also **authorization**:
+Individual user/client certs/keys will be generated per user, with `subject organization = username`. These certs would be handed out to users. This will be the basis for not only authentication, but also **authorization**:
 
 * The client will authenticate with a user-specific cert, and thus pass awareness of the cert's username to the server for assigning ownership of a process
 * The server can then restrict the given user to perform operations (stop/get status) against the processes they own only as a minimal authorization scheme
