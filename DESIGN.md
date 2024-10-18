@@ -37,7 +37,6 @@ The library will define an interface for storing and tracking running processes,
 type ProcessStore interface {
   NewProcess(workerID string, ownerID string, hostPID string) (err error)
   GetOutputWriters(workerID string) (stdout io.Writer, stderr io.Writer, err error)
-  GetOwnerID(workerID string) (ownerID string, err error)
   GetStatus(workerID string) (status *Status, err error)
   GetOutput(workerID string) (stdout io.Reader, stderr io.Reader, err error)
 }
