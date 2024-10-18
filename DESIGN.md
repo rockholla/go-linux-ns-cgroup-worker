@@ -35,8 +35,7 @@ The library will define an interface for storing and tracking running processes,
 ```golang
 // ProcessStore defines an interface for defining custom stores to track processes, ownership, status, output, etc.
 type ProcessStore interface {
-  NewProcess(workerID string, ownerID string) (err error)
-  SetHostPID(workerID string, hostPID string) (err error)
+  NewProcess(workerID string, ownerID string, hostPID string) (err error)
   GetHostPID(workerID string) (hostPID string, err error)
   GetOutputWriters(workerID string) (stdout io.Writer, stderr io.Writer, err error)
   GetOwnerID(workerID string) (ownerID string, err error)
