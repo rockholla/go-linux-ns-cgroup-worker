@@ -74,7 +74,7 @@ func (wg *WorkerGroup) Start(cmd []string, ownerID string) (workerID string, err
 func (wg *WorkerGroup) Stop(workerID string, requesterID string) error
 
 // GetStatus is a wrapper around the process store implementation to also manage authorization-related logic, e.g. does requester = owner
-func (wg *WorkerGroup) GetStatus(workerID string, requesterID string) (done bool, exitCode int, err error)
+func (wg *WorkerGroup) GetStatus(workerID string, requesterID string) (status *Status, err error)
 
 // GetOutput is a wrapper around the process store implementation to also manage authorization-related logic, e.g. does requester = owner
 func (wg *WorkerGroup) GetOutput(workerID string, requesterID string) (stdout io.Reader, stderr io.Reader, err error)
@@ -123,18 +123,37 @@ service Worker {
 
 message StartRequest {
   string cmd = 1;
+  repeated string args = 2;
+}
+
+message StartResponse {
+  string worker_id;
 }
 
 message StopRequest {
   string worker_id = 1;
 }
 
+message StopResponse {
+  bool stopped = 1;
+}
+
 message GetStatusRequest {
   string worker_id = 1;
 }
 
+message GetStatusResponse {
+  bool done = 1;
+  string exit_code = 2;
+}
+
 message StreamOutputRequest {
   string worker_id = 1;
+}
+
+message StreamOutputResponse {
+  string stdout = 1;
+  string stderr = 2;
 }
 ```
 
