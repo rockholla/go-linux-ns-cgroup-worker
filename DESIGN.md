@@ -36,11 +36,18 @@ The library will define an interface for storing and tracking running processes,
 // ProcessStore defines an interface for defining custom stores to track processes, ownership, status, output, etc.
 type ProcessStore interface {
   NewProcess(workerID string, ownerID string, hostPID string) (err error)
-  GetHostPID(workerID string) (hostPID string, err error)
   GetOutputWriters(workerID string) (stdout io.Writer, stderr io.Writer, err error)
   GetOwnerID(workerID string) (ownerID string, err error)
-  GetStatus(workerID string) (done bool, exitCode int, pid string, err error)
+  GetStatus(workerID string) (status *Status, err error)
   GetOutput(workerID string) (stdout io.Reader, stderr io.Reader, err error)
+}
+
+// Status represents the current status of a single process
+type Status struct {
+  HostPID string
+  OwnerID string
+  Done bool
+  ExitCode int
 }
 ```
 
